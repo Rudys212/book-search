@@ -20,51 +20,53 @@ const resolvers = {
   Mutation: {
     addUser: async (parent, { username, email, password }) => {
       const user = await User.create({ username, email, password });
-      const token = signToken(profile);
+      const token = signToken(user);
 
       return { token, user };
     },
     login: async (parent, { email, password }) => {
-      const profile = await User.findOne({ email });
+      const user = await User.findOne({ email });
 
       if (!user) {
         throw new AuthenticationError("No user with this email found!");
       }
 
-      const correctPw = await profile.isCorrectPassword(password);
+      const correctPw = await user.isCorrectPassword(password);
 
       if (!correctPw) {
         throw new AuthenticationError("Incorrect password!");
       }
 
-      const token = signToken(profile);
+      const token = signToken(user);
       return { token, user };
     },
 
-    saveBook: async (parent, { book }, context) => {
+    saveBook: async (parent, { bookInput }, context) => {
       if (context.user) {
-        return User.findOneAndUpdate(
+        const userUpdate = await User.findOneAndUpdate(
           { _id: context.user._id },
           {
-            $addToSet: { savedBooks: book },
+            $addToSet: { savedBooks: bookInput },
           },
           {
             new: true,
             runValidators: true,
           }
         );
+        return userUpdate;
       }
-      // If user attempts to execute this mutation and isn't logged in, throw an error
+
       throw new AuthenticationError("You need to be logged in!");
     },
-    // Make it so a logged in user can only remove a skill from their own profile
+
     removeBook: async (parent, { book }, context) => {
       if (context.user) {
-        return user.findOneAndUpdate(
+        const userUpdate = await User.findOneAndUpdate(
           { _id: context.user._id },
-          { $pull: { savedBooks: book } },
+          { $pull: { savedBooks: { book } } },
           { new: true }
         );
+        return userUpdate;
       }
       throw new AuthenticationError("You need to be logged in!");
     },
