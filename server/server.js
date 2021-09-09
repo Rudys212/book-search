@@ -14,8 +14,8 @@ const server = new ApolloServer({
 
 const app = express();
 
-apolloServer.start().then(() => {
-  apolloServer.applyMiddleware({ app });
+server.start().then(() => {
+  server.applyMiddleware({ app });
 });
 
 app.use(express.urlencoded({ extended: true }));
@@ -34,7 +34,7 @@ db.once("open", () => {
   app.listen(PORT, () => {
     console.log(`🌍 Now listening on localhost:${PORT}`);
     console.log(
-      `GraphQL server ready at http://localhost:${PORT}${apolloServer.graphqlPath}`
+      `GraphQL server ready at http://localhost:${PORT}${server.graphqlPath}`
     );
   });
 });
